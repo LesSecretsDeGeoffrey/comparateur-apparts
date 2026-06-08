@@ -167,6 +167,21 @@ input,select,textarea{font-family:inherit; font-size:16px; color:var(--ink)}
 .bar-row .bv{font-size:11px; color:var(--muted); width:26px; text-align:right; flex:none}
 .cmp-flags{margin-top:10px; font-size:12.5px; display:flex; flex-wrap:wrap; gap:6px}
 
+/* ---------- Reorder (glisser-déposer) ---------- */
+.reorder-head{display:flex; align-items:center; gap:12px; justify-content:space-between; background:var(--accent-soft); border:1px solid #D3E3DD; border-radius:13px; padding:12px 14px; margin-bottom:14px; font-size:13.5px; color:var(--accent-d); line-height:1.4}
+.reorder-head .btn{flex:none}
+.reorder-list{display:flex; flex-direction:column; gap:9px}
+.ro-row{display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--line); border-radius:13px; padding:10px 6px 10px 12px; box-shadow:var(--shadow); height:68px; box-sizing:border-box; will-change:transform; touch-action:pan-y}
+.ro-row.dragging{box-shadow:0 12px 30px rgba(41,48,46,.20); border-color:var(--accent); position:relative; z-index:5}
+.ro-thumb{flex:none; width:46px; height:46px; border-radius:10px; overflow:hidden; background:#ECE8DF; display:flex; align-items:center; justify-content:center; font-size:20px}
+.ro-thumb img{width:100%; height:100%; object-fit:cover; display:block}
+.ro-main{flex:1; min-width:0}
+.ro-nm{font-family:Georgia,serif; font-size:15px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.ro-sub{font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px}
+.ro-score{flex:none; width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; color:#fff; font-family:Georgia,serif; font-size:14px; font-weight:700}
+.ro-handle{flex:none; font-size:23px; color:#B7B1A6; padding:10px 8px 10px 6px; cursor:grab; touch-action:none; line-height:1; letter-spacing:-2px}
+.ro-row.dragging .ro-handle{cursor:grabbing; color:var(--accent)}
+
 /* ---------- Empty ---------- */
 .empty{text-align:center; padding:54px 20px; color:var(--muted)}
 .empty .big{font-size:54px; margin-bottom:14px}
@@ -219,6 +234,7 @@ input,select,textarea{font-family:inherit; font-size:16px; color:var(--ink)}
 <div class="wrap">
   <div class="toolbar" id="toolbar">
     <button class="btn primary" data-action="add"><span class="ic">＋</span> Ajouter un appart</button>
+    <button class="btn" data-action="reorder"><span class="ic">↕</span> Classer</button>
     <button class="btn" data-action="print"><span class="ic">🖨</span> Imprimer / PDF</button>
     <button class="btn ghost" data-action="export">Exporter</button>
     <button class="btn ghost" data-action="import">Importer</button>
@@ -320,6 +336,7 @@ function save(){ try{localStorage.setItem(KEY, JSON.stringify(state));}catch(e){
 
 const openIds=new Set();
 let photoTargetId=null;
+let reorderMode=false;
 function uid(){ return 'a'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36); }
 function num(v){ const n=parseFloat(String(v).replace(',','.')); return isNaN(n)?0:n; }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
@@ -360,6 +377,9 @@ const app=document.getElementById('app');
 function render(){
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.view===state.view));
   document.getElementById('tab-count').textContent = state.apparts.length?('('+state.apparts.length+')'):'';
+  document.getElementById('toolbar').style.display = reorderMode?'none':'';
+  document.querySelector('.tabs').style.display = reorderMode?'none':'';
+  if(reorderMode){ renderReorder(); document.getElementById('hint').innerHTML=''; return; }
   if(state.view==='comparatif') renderComparatif(); else renderFiches();
   const h=document.getElementById('hint');
   h.innerHTML = state.apparts.length
@@ -523,6 +543,68 @@ function renderComparatif(){
   }).join('');
 }
 
+/* ---------- Reorder (glisser-déposer tactile) ---------- */
+function renderReorder(){
+  app.innerHTML = `
+    <div class="reorder-head">
+      <div>Glisse la poignée <b>⠿</b> pour classer tes préférés, du haut vers le bas. L'ordre est gardé dans « Les fiches ».</div>
+      <button class="btn primary" data-action="reorder-done">Terminé</button>
+    </div>
+    <div class="reorder-list" id="reorderList">${state.apparts.map(reorderRowHTML).join('')}</div>`;
+}
+function reorderRowHTML(a){
+  const sc=scoreOf(a);
+  return `<div class="ro-row" data-roid="${a.id}">
+    <div class="ro-thumb">${a.photo?`<img src="${esc(a.photo)}" alt="">`:'🏠'}</div>
+    <div class="ro-main">
+      <div class="ro-nm">${esc(a.nom)||'Sans nom'}</div>
+      <div class="ro-sub">${num(a.loyer)>0?Math.round(num(a.loyer))+' € · ':''}${esc(a.quartier)||''}</div>
+    </div>
+    <div class="ro-score" style="background:var(--${scoreClass(sc.score)})">${sc.score==null?'—':sc.score}</div>
+    <div class="ro-handle" data-rohandle>⠿</div>
+  </div>`;
+}
+let roDrag=null;
+function onRoDown(e){
+  if(!reorderMode) return;
+  const handle=e.target.closest('[data-rohandle]'); if(!handle) return;
+  e.preventDefault();
+  const row=handle.closest('.ro-row'); const list=document.getElementById('reorderList'); if(!row||!list) return;
+  const rows=[...list.querySelectorAll('.ro-row')];
+  const gap=parseFloat(getComputedStyle(list).rowGap||getComputedStyle(list).gap||'9')||9;
+  roDrag={row, rows, fromIndex:rows.indexOf(row), curIndex:rows.indexOf(row), startY:e.clientY, H:row.getBoundingClientRect().height+gap};
+  row.classList.add('dragging');
+  document.addEventListener('pointermove', onRoMove, {passive:false});
+  document.addEventListener('pointerup', onRoUp);
+  document.addEventListener('pointercancel', onRoUp);
+}
+function onRoMove(e){
+  if(!roDrag) return; e.preventDefault();
+  const dy=e.clientY-roDrag.startY;
+  roDrag.row.style.transform=`translateY(${dy}px) scale(1.03)`;
+  let ni=Math.max(0, Math.min(roDrag.rows.length-1, roDrag.fromIndex+Math.round(dy/roDrag.H)));
+  if(ni!==roDrag.curIndex){
+    roDrag.curIndex=ni;
+    roDrag.rows.forEach((r,idx)=>{
+      if(r===roDrag.row) return;
+      let sh=0;
+      if(roDrag.fromIndex<ni && idx>roDrag.fromIndex && idx<=ni) sh=-roDrag.H;
+      else if(roDrag.fromIndex>ni && idx<roDrag.fromIndex && idx>=ni) sh=roDrag.H;
+      r.style.transform = sh?`translateY(${sh}px)`:'';
+    });
+  }
+}
+function onRoUp(){
+  if(!roDrag) return;
+  document.removeEventListener('pointermove', onRoMove);
+  document.removeEventListener('pointerup', onRoUp);
+  document.removeEventListener('pointercancel', onRoUp);
+  const {fromIndex, curIndex}=roDrag; roDrag=null;
+  if(fromIndex!==curIndex){ const arr=state.apparts; const [m]=arr.splice(fromIndex,1); arr.splice(curIndex,0,m); save(); }
+  renderReorder();
+}
+document.addEventListener('pointerdown', onRoDown, {passive:false});
+
 /* ---------- Targeted updates (no full re-render on typing) ---------- */
 function updateDerived(id){
   const a=state.apparts.find(x=>x.id===id); if(!a) return;
@@ -583,6 +665,8 @@ document.addEventListener('click', e=>{
   if(act==='export'){ doExport(); return; }
   if(act==='import'){ document.getElementById('fileInput').click(); return; }
   if(act==='photo'){ photoTargetId=id; document.getElementById('photoInput').click(); return; }
+  if(act==='reorder'){ if(state.apparts.length<2){ alert('Ajoute au moins 2 apparts pour pouvoir les classer.'); return; } state.view='fiches'; reorderMode=true; save(); render(); window.scrollTo({top:0}); return; }
+  if(act==='reorder-done'){ reorderMode=false; render(); window.scrollTo({top:0}); return; }
   if(act==='settings'){ openSettings(); return; }
   if(act==='close-settings'){ document.getElementById('settingsModal').classList.remove('open'); return; }
   if(act==='save-settings'){
