@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3E7C6A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Nos apparts">
+<title>Notre recherche d'appart</title>
+<style>
+:root{
+  --bg:#F4F1EA; --card:#FFFFFF; --ink:#29302E; --muted:#837F77;
+  --line:#E7E2D8; --accent:#3E7C6A; --accent-d:#2E5F50; --accent-soft:#E4EEEA;
+  --gold:#C49A47; --danger:#C25B43; --danger-soft:#F6E4DF;
+  --s-vhigh:#2E7D5B; --s-high:#4E9A6B; --s-mid:#D89A3C; --s-low:#C25B43; --s-none:#B9B3A8;
+  --shadow:0 1px 2px rgba(41,48,46,.05), 0 8px 24px rgba(41,48,46,.06);
+  --r:16px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow-x:hidden}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  font-size:16px; line-height:1.45; -webkit-font-smoothing:antialiased;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+h1,h2,h3{font-family:Georgia,'Times New Roman',serif; font-weight:600; margin:0}
+button{font-family:inherit; cursor:pointer; border:none; background:none; color:inherit}
+input,select,textarea{font-family:inherit; font-size:16px; color:var(--ink)}
+
+/* ---------- Top bar ---------- */
+.topbar{
+  position:sticky; top:0; z-index:30; background:rgba(244,241,234,.92);
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+  padding:calc(env(safe-area-inset-top) + 12px) 16px 10px;
+}
+.brand{display:flex; align-items:center; gap:10px; margin-bottom:12px}
+.brand .logo{font-size:24px; line-height:1}
+.brand h1{font-size:21px; letter-spacing:-.2px}
+.brand .sub{font-size:12.5px; color:var(--muted); margin-top:1px}
+.tabs{display:flex; gap:6px; background:#EBE7DD; padding:4px; border-radius:12px}
+.tab{
+  flex:1; padding:9px 6px; border-radius:9px; font-size:14px; font-weight:600;
+  color:var(--muted); text-align:center; transition:.18s;
+}
+.tab.active{background:var(--card); color:var(--accent-d); box-shadow:0 1px 3px rgba(41,48,46,.1)}
+.tab .n{font-size:11px; opacity:.7}
+
+/* ---------- Layout ---------- */
+.wrap{max-width:780px; margin:0 auto; padding:16px 16px 40px}
+.toolbar{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px}
+.btn{
+  display:inline-flex; align-items:center; gap:7px; padding:10px 14px; border-radius:11px;
+  font-size:14px; font-weight:600; background:var(--card); border:1px solid var(--line);
+  color:var(--ink); box-shadow:var(--shadow); transition:.15s;
+}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent); color:#fff; border-color:var(--accent)}
+.btn.ghost{background:transparent; box-shadow:none; border-color:transparent; color:var(--muted)}
+.btn .ic{font-size:16px}
+
+/* ---------- Card ---------- */
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--r);
+  box-shadow:var(--shadow); margin-bottom:14px; overflow:hidden;
+}
+.card-head{display:flex; align-items:center; gap:12px; padding:14px 16px; cursor:pointer; user-select:none}
+.score{
+  flex:none; width:52px; height:52px; border-radius:14px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; color:#fff; font-family:Georgia,serif; line-height:1;
+}
+.score .v{font-size:20px; font-weight:700}
+.score .u{font-size:9px; opacity:.85; margin-top:2px; letter-spacing:.3px}
+.score.s-vhigh{background:var(--s-vhigh)} .score.s-high{background:var(--s-high)}
+.score.s-mid{background:var(--s-mid)} .score.s-low{background:var(--s-low)}
+.score.s-none{background:var(--s-none)}
+.head-main{flex:1; min-width:0}
+.head-main .nm{font-family:Georgia,serif; font-size:17px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.head-main .qt{font-size:13px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.head-price{flex:none; text-align:right}
+.head-price .p{font-family:Georgia,serif; font-size:17px; font-weight:600; color:var(--accent-d)}
+.head-price .pm{font-size:11px; color:var(--muted)}
+.chev{flex:none; color:var(--muted); transition:.2s; font-size:13px}
+.card.collapsed .chev{transform:rotate(-90deg)}
+
+.quickstats{display:flex; flex-wrap:wrap; gap:6px; padding:0 16px 14px}
+.chip{
+  font-size:12px; padding:4px 9px; border-radius:8px; background:#F3F0E8; color:#5F5B53;
+  display:inline-flex; align-items:center; gap:4px; font-weight:500;
+}
+.chip.warn{background:var(--danger-soft); color:#9B402C}
+.chip.good{background:var(--accent-soft); color:var(--accent-d)}
+
+.card-body{border-top:1px solid var(--line); padding:4px 16px 16px}
+.card.collapsed .card-body{display:none}
+
+/* photo banner */
+.card-photo{position:relative; height:178px; background:#ECE8DF; overflow:hidden}
+.card-photo>img{width:100%; height:100%; object-fit:cover; display:block; cursor:pointer}
+.card-photo .ph-empty{height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; color:#A49E92; font-size:13.5px; font-weight:600; cursor:pointer}
+.card-photo .ph-empty .ic{font-size:28px}
+.ph-btn{position:absolute; right:10px; bottom:10px; background:rgba(41,48,46,.58); color:#fff; border-radius:9px; padding:7px 11px; font-size:12.5px; font-weight:600; -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); display:inline-flex; gap:5px; align-items:center}
+
+.section{padding:14px 0; border-bottom:1px solid var(--line)}
+.section:last-child{border-bottom:none}
+.section h3{font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:var(--accent); margin-bottom:12px; display:flex; align-items:center; gap:6px}
+.section h3 .em{font-size:14px}
+
+/* form grid */
+.grid{display:grid; grid-template-columns:1fr 1fr; gap:10px 12px}
+.f{display:flex; flex-direction:column; gap:4px}
+.f.full{grid-column:1/-1}
+.f label{font-size:11.5px; color:var(--muted); font-weight:600; letter-spacing:.2px}
+.f input,.f select,.f textarea{
+  background:#FBFAF6; border:1px solid var(--line); border-radius:10px; padding:10px 11px; width:100%;
+}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none; border-color:var(--accent); background:#fff}
+.f textarea{resize:vertical; min-height:64px; line-height:1.4}
+.f .with-unit{position:relative}
+.f .with-unit .u{position:absolute; right:11px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:13px; pointer-events:none}
+.f .with-unit input{padding-right:34px}
+.check{flex-direction:row; align-items:center; gap:8px; padding-top:18px}
+.check input{width:20px; height:20px; accent-color:var(--accent)}
+.check label{font-size:14px; color:var(--ink)}
+
+/* rating rows */
+.rate{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:7px 0}
+.rate .lab{font-size:14px; flex:1}
+.rate .lab .imp{font-size:10px; color:var(--gold); margin-left:5px; letter-spacing:1px}
+.stars{display:flex; gap:2px; flex:none}
+.star{font-size:25px; line-height:1; color:#DAD4C8; padding:3px; transition:.1s}
+.star.on{color:var(--gold)}
+.hearts .star.on{color:var(--danger)}
+.star:active{transform:scale(1.2)}
+
+.couple{display:grid; grid-template-columns:1fr; gap:10px; background:#FBF2EF; border:1px solid var(--danger-soft); border-radius:12px; padding:12px}
+.couple .who{display:flex; align-items:center; justify-content:space-between}
+.couple .who .nm2{font-size:14px; font-weight:600}
+.disagree{margin-top:2px; font-size:12.5px; color:#9B402C; background:#fff; border:1px solid var(--danger-soft); border-radius:9px; padding:7px 10px; display:flex; gap:7px; align-items:center}
+
+.card-foot{display:flex; gap:8px; padding-top:14px; flex-wrap:wrap}
+.card-foot .btn{padding:9px 12px; font-size:13px}
+.card-foot .link{flex:1; justify-content:center; background:var(--accent-soft); border-color:var(--accent-soft); color:var(--accent-d)}
+.card-foot .del{color:var(--danger); margin-left:auto}
+
+/* ---------- Comparatif ---------- */
+.cmp-card{background:var(--card); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); margin-bottom:12px; padding:14px 16px; display:flex; gap:14px}
+.cmp-rank{flex:none; width:34px; text-align:center; font-family:Georgia,serif; font-size:22px; padding-top:2px}
+.cmp-thumb{flex:none; width:68px; height:68px; border-radius:13px; overflow:hidden; position:relative; background:#ECE8DF}
+.cmp-thumb img{width:100%; height:100%; object-fit:cover; display:block}
+.cmp-thumb .rk{position:absolute; left:4px; top:4px; background:rgba(41,48,46,.72); color:#fff; min-width:21px; height:21px; padding:0 4px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:12px; font-family:Georgia,serif}
+.cmp-thumb .rk-big{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:27px; font-family:Georgia,serif; color:var(--muted)}
+.cmp-main{flex:1; min-width:0}
+.cmp-top{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
+.cmp-top .nm{font-family:Georgia,serif; font-size:18px; font-weight:600}
+.cmp-top .sc{font-family:Georgia,serif; font-size:22px; font-weight:700}
+.cmp-meta{font-size:12.5px; color:var(--muted); margin:2px 0 10px}
+.cmp-nums{display:flex; gap:14px; flex-wrap:wrap; font-size:13px; margin-bottom:11px}
+.cmp-nums b{font-family:Georgia,serif; font-weight:600}
+.bars{display:flex; flex-direction:column; gap:6px}
+.bar-row{display:flex; align-items:center; gap:8px}
+.bar-row .bl{font-size:11px; color:var(--muted); width:84px; flex:none}
+.bar{flex:1; height:7px; background:#EEEAE0; border-radius:5px; overflow:hidden}
+.bar i{display:block; height:100%; border-radius:5px; background:var(--accent)}
+.bar-row .bv{font-size:11px; color:var(--muted); width:26px; text-align:right; flex:none}
+.cmp-flags{margin-top:10px; font-size:12.5px; display:flex; flex-wrap:wrap; gap:6px}
+
+/* ---------- Empty ---------- */
+.empty{text-align:center; padding:54px 20px; color:var(--muted)}
+.empty .big{font-size:54px; margin-bottom:14px}
+.empty h2{font-size:21px; color:var(--ink); margin-bottom:8px}
+.empty p{max-width:340px; margin:0 auto 22px; font-size:14.5px}
+.empty .btn{margin:4px}
+
+.hint{font-size:12.5px; color:var(--muted); text-align:center; margin-top:18px; line-height:1.5}
+
+/* ---------- Modal ---------- */
+.modal-bg{position:fixed; inset:0; background:rgba(41,48,46,.45); z-index:50; display:none; align-items:flex-end; justify-content:center; padding:0}
+.modal-bg.open{display:flex}
+.modal{background:var(--card); width:100%; max-width:520px; border-radius:20px 20px 0 0; padding:22px 20px calc(env(safe-area-inset-bottom) + 22px); max-height:86vh; overflow:auto}
+.modal h2{font-size:19px; margin-bottom:6px}
+.modal p{font-size:13.5px; color:var(--muted); margin:0 0 16px}
+.modal .f{margin-bottom:12px}
+.modal-actions{display:flex; gap:8px; margin-top:6px}
+.modal-actions .btn{flex:1; justify-content:center}
+
+@media (min-width:560px){
+  .modal-bg{align-items:center}
+  .modal{border-radius:20px}
+}
+
+/* ---------- Print ---------- */
+@media print{
+  .topbar,.toolbar,.card-foot,.chev,.hint,.no-print{display:none !important}
+  body{background:#fff}
+  .card,.cmp-card{box-shadow:none; break-inside:avoid; border-color:#ccc}
+  .card.collapsed .card-body{display:block !important}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="logo">🏡</div>
+    <div>
+      <h1>Notre recherche d'appart</h1>
+      <div class="sub" id="sub">Comparez vos visites en un coup d'œil</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-view="fiches">Les fiches<div class="n" id="tab-count"></div></div>
+    <div class="tab" data-view="comparatif">Comparatif</div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="toolbar" id="toolbar">
+    <button class="btn primary" data-action="add"><span class="ic">＋</span> Ajouter un appart</button>
+    <button class="btn" data-action="print"><span class="ic">🖨</span> Imprimer / PDF</button>
+    <button class="btn ghost" data-action="export">Exporter</button>
+    <button class="btn ghost" data-action="import">Importer</button>
+    <button class="btn ghost" data-action="settings">⚙︎ Noms</button>
+  </div>
+  <div id="app"></div>
+  <div class="hint no-print" id="hint"></div>
+</div>
+
+<input type="file" id="fileInput" accept="application/json" style="display:none">
+<input type="file" id="photoInput" accept="image/*" style="display:none">
+
+<!-- Settings modal -->
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <h2>Vos prénoms</h2>
+    <p>Pour la double note « coup de cœur ». Vous pouvez laisser Toi / Elle.</p>
+    <div class="f"><label>Toi</label><input id="set-you" placeholder="Toi"></div>
+    <div class="f"><label>Ta copine</label><input id="set-her" placeholder="Elle"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" data-action="close-settings">Annuler</button>
+      <button class="btn primary" data-action="save-settings">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const KEY='comparateur_apparts_v1';
+
+const GROUPS=[
+  {id:'emplacement', label:'Emplacement', em:'📍', criteria:[
+    {id:'quartier', label:'Quartier (ambiance, sécurité)', weight:3},
+    {id:'transports', label:'Transports', weight:2},
+    {id:'commerces', label:'Commerces / quotidien', weight:1},
+    {id:'trajet', label:'Trajet boulot', weight:2},
+  ]},
+  {id:'logement', label:'Le logement', em:'🏠', criteria:[
+    {id:'etat', label:'État général / propreté', weight:2},
+    {id:'agencement', label:'Agencement / volume', weight:3},
+    {id:'cuisine', label:'Cuisine', weight:1},
+    {id:'sdb', label:'Salle de bain', weight:1},
+    {id:'rangements', label:'Rangements', weight:1},
+    {id:'dpe_iso', label:'DPE / isolation', weight:2},
+  ]},
+  {id:'confort', label:'Confort', em:'☀️', criteria:[
+    {id:'luminosite', label:'Luminosité / exposition', weight:3},
+    {id:'calme', label:'Calme / bruit', weight:3},
+    {id:'vis_a_vis', label:'Vis-à-vis / intimité', weight:1},
+    {id:'exterieur_q', label:'Extérieur (balcon / jardin)', weight:1},
+  ]},
+  {id:'budget', label:'Budget', em:'💰', criteria:[
+    {id:'qualite_prix', label:'Rapport qualité / prix', weight:3},
+    {id:'charges_ok', label:'Charges raisonnables', weight:1},
+  ]},
+];
+const COUPLE=[{id:'toi', w:3},{id:'elle', w:3}];
+const EXTERIEURS=['Aucun','Balcon','Terrasse','Jardin','Loggia','Cour'];
+const DPES=['','A','B','C','D','E','F','G'];
+
+const SEED=[
+  {nom:"Nancy — 21 Ruelle Vitrimont", quartier:"Nancy (54000)", adresse:"21 Ruelle Vitrimont, Nancy", lien:"https://www.bouko-immobilier.com/location/74-nancy/appartement/t3/140-nancy-f3-rdc-avec-jardin/", dateVisite:"2026-06-09", photo:"photos/nancy-vitrimont.jpg", loyer:"930", charges:"30", depot:"900", surface:"81", pieces:"3", chambres:"2", etage:"RDC", exterieur:"Jardin", dpe:"", dispo:"21/05/2026", notes:"Visite lun. 09/06 à 17h00\nF3 en rez-de-chaussée, jardin privatif + terrasse, 2 chambres"},
+  {nom:"Heillecourt — 4 Rue de Longchamps", quartier:"Heillecourt (54180) · Nancy Sud", adresse:"4 Rue de Longchamps, Heillecourt", lien:"https://www.libertyhome.fr/location/31-heillecourt/maison/744-heillecourt-nancy-sud-maison-t4-avec-jardin-et-garage", dateVisite:"2026-06-12", photo:"photos/heillecourt-longchamps.jpg", loyer:"1065", charges:"25", depot:"1040", surface:"112.63", pieces:"4", chambres:"3", etage:"Maison", exterieur:"Jardin", dpe:"D", dispo:"31/08/2026", notes:"Visite ven. 12/06 à 17h00\nMaison T4, jardin clos + garage motorisé, 3 chambres"},
+  {nom:"Tomblaine 1 — maison T4", quartier:"Tomblaine (54510)", adresse:"Tomblaine (54510)", lien:"https://www.lamy-immobilier.fr/louer/louer-un-bien/annonces-de-biens-a-louer/grand-est/meurthe-et-moselle-54/tomblaine-54510/maison-villa-tomblaine-54510-fl0879654", dateVisite:"", photo:"photos/tomblaine-1.jpg", loyer:"890", charges:"0", depot:"890", surface:"81", pieces:"4", chambres:"3", etage:"Maison", exterieur:"Jardin", dpe:"C", dispo:"16/06/2026", notes:"Maison T4 en lotissement, terrasse + jardin + garage attenant, 3 chambres\nCharges affichées à 0 € (à confirmer en visite)"},
+  {nom:"Tomblaine 2 — maison T4", quartier:"Tomblaine (54510) · rue Camille Desmoulin", adresse:"Rue Camille Desmoulin, Tomblaine (54510)", lien:"https://www.lamy-immobilier.fr/louer/louer-un-bien/annonces-de-biens-a-louer/grand-est/meurthe-et-moselle-54/tomblaine-54510/maison-villa-tomblaine-54510-fl0882350", dateVisite:"", photo:"photos/tomblaine-2.jpg", loyer:"873", charges:"50", depot:"823", surface:"96", pieces:"4", chambres:"3", etage:"Maison", exterieur:"Jardin", dpe:"C", dispo:"03/07/2026", notes:"Maison T4, séjour/cuisine 38 m² lumineux ouvert sur jardin, terrasse + jardinet + garage, 3 chambres"},
+  {nom:"Nancy — Raymond Poincaré / Gare", quartier:"Raymond Poincaré / Gare · Nancy (54000)", adresse:"Quartier Raymond Poincaré, Nancy", lien:"https://tripleximmobilier.fr/property/quartier-raymond-poincare-gare-superbe-3-pieces-terrasse-en-derner-etage-avec-parking/", dateVisite:"", photo:"photos/raymond-poincare.jpg", loyer:"960", charges:"110", depot:"850", surface:"73", pieces:"3", chambres:"2", etage:"4e (dernier)", exterieur:"Terrasse", dpe:"D", dispo:"01/08/2026", notes:"Dernier étage (4e), terrasse 20 m² + garage/parking, 2 chambres\nLoyer 850 € HC + 110 € de charges"},
+];
+
+let state=load();
+
+function load(){
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(raw){const s=JSON.parse(raw); s.apparts=s.apparts||[]; s.names=s.names||{you:'Toi',her:'Elle'}; s.view=s.view||'fiches'; return s;}
+  }catch(e){}
+  return {apparts:SEED.map(s=>newAppart(s)), names:{you:'Toi',her:'Elle'}, view:'fiches'};
+}
+function save(){ try{localStorage.setItem(KEY, JSON.stringify(state));}catch(e){} }
+
+const openIds=new Set();
+let photoTargetId=null;
+function uid(){ return 'a'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36); }
+function num(v){ const n=parseFloat(String(v).replace(',','.')); return isNaN(n)?0:n; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function newAppart(seed){
+  return Object.assign({
+    id:uid(), nom:'', quartier:'', adresse:'', lien:'', dateVisite:'', photo:'',
+    loyer:'', charges:'', depot:'', surface:'', pieces:'', chambres:'', etage:'',
+    ascenseur:false, meuble:false, dpe:'', exterieur:'Aucun', dispo:'',
+    ratings:{}, coup:{toi:0,elle:0}, forts:'', flags:'', notes:''
+  }, seed||{});
+}
+
+/* ---------- Scoring ---------- */
+function scoreOf(a){
+  let num_=0, den=0, rated=0, total=0;
+  GROUPS.forEach(g=>g.criteria.forEach(c=>{ total++; const r=a.ratings[c.id]||0; if(r){num_+=r*c.weight; den+=5*c.weight; rated++;} }));
+  COUPLE.forEach(c=>{ total++; const r=(a.coup&&a.coup[c.id])||0; if(r){num_+=r*c.w; den+=5*c.w; rated++;} });
+  return {score: den?Math.round(num_/den*100):null, pct: Math.round(rated/total*100), rated, total};
+}
+function groupScore(a,g){
+  let num_=0,den=0;
+  g.criteria.forEach(c=>{const r=a.ratings[c.id]||0; if(r){num_+=r*c.weight; den+=5*c.weight;}});
+  return den?Math.round(num_/den*100):null;
+}
+function loyerM2(a){ const l=num(a.loyer), s=num(a.surface); return (l>0&&s>0)?Math.round(l/s):null; }
+function scoreClass(s){ if(s==null)return's-none'; if(s>=85)return's-vhigh'; if(s>=70)return's-high'; if(s>=55)return's-mid'; return's-low'; }
+
+/* ---------- Render ---------- */
+const app=document.getElementById('app');
+function render(){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.view===state.view));
+  document.getElementById('tab-count').textContent = state.apparts.length?('('+state.apparts.length+')'):'';
+  if(state.view==='comparatif') renderComparatif(); else renderFiches();
+  const h=document.getElementById('hint');
+  h.innerHTML = state.apparts.length
+    ? "Tout est sauvegardé sur ton tel. « Exporter » crée un fichier à envoyer à ta copine — elle l'ouvre et fait « Importer »."
+    : "";
+}
+
+function renderFiches(){
+  if(!state.apparts.length){
+    app.innerHTML=`<div class="empty">
+      <div class="big">🏡</div>
+      <h2>Aucun appart pour l'instant</h2>
+      <p>Ajoute une fiche par appartement que vous visitez. Tu remplis pendant la visite, le score se calcule tout seul.</p>
+      <button class="btn primary" data-action="add"><span class="ic">＋</span> Ajouter un appart</button>
+      <button class="btn" data-action="demo">Voir un exemple</button>
+    </div>`;
+    return;
+  }
+  app.innerHTML = state.apparts.map(cardHTML).join('');
+}
+
+function photoHTML(a){
+  if(a.photo) return `<div class="card-photo"><img src="${esc(a.photo)}" alt="" data-action="toggle" data-id="${a.id}"><button class="ph-btn" data-action="photo" data-id="${a.id}">📷 Changer</button></div>`;
+  return `<div class="card-photo"><div class="ph-empty" data-action="photo" data-id="${a.id}"><span class="ic">📷</span>Ajouter une photo</div></div>`;
+}
+function cardHTML(a){
+  const sc=scoreOf(a); const lm2=loyerM2(a);
+  const open=openIds.has(a.id);
+  const dis = (a.coup.toi&&a.coup.elle&&Math.abs(a.coup.toi-a.coup.elle)>=2);
+  const stats=[];
+  if(num(a.surface)>0) stats.push(`<span class="chip">📐 ${esc(a.surface)} m²</span>`);
+  if(num(a.pieces)>0) stats.push(`<span class="chip">🚪 ${esc(a.pieces)} pièces</span>`);
+  if(num(a.chambres)>0) stats.push(`<span class="chip">🛏 ${esc(a.chambres)} ch.</span>`);
+  if(lm2) stats.push(`<span class="chip">${lm2} €/m²</span>`);
+  if(a.exterieur&&a.exterieur!=='Aucun') stats.push(`<span class="chip good">🌿 ${esc(a.exterieur)}</span>`);
+  if(a.dpe) stats.push(`<span class="chip">DPE ${esc(a.dpe)}</span>`);
+  if(dis) stats.push(`<span class="chip warn">⚡ Désaccord</span>`);
+  if(a.flags.trim()) stats.push(`<span class="chip warn">⚠︎ Point faible</span>`);
+
+  return `<div class="card ${open?'':'collapsed'}" data-card="${a.id}">
+    ${photoHTML(a)}
+    <div class="card-head" data-action="toggle" data-id="${a.id}">
+      <div class="score ${scoreClass(sc.score)}"><span class="v" data-score>${sc.score==null?'—':sc.score}</span><span class="u">/100</span></div>
+      <div class="head-main">
+        <div class="nm">${esc(a.nom)||'Sans nom'}</div>
+        <div class="qt">${esc(a.quartier)||'Quartier à renseigner'}</div>
+      </div>
+      <div class="head-price">
+        <div class="p">${num(a.loyer)>0?Math.round(num(a.loyer))+' €':'—'}</div>
+        <div class="pm" data-lm2>${lm2?lm2+' €/m²':'CC / mois'}</div>
+      </div>
+      <div class="chev">▾</div>
+    </div>
+    <div class="quickstats">${stats.join('')||'<span class="chip">Appuie pour remplir</span>'}</div>
+    <div class="card-body">
+      ${infosHTML(a)}
+      ${GROUPS.map(g=>groupHTML(a,g)).join('')}
+      ${coupleHTML(a)}
+      <div class="section">
+        <h3><span class="em">📝</span> Notes</h3>
+        <div class="grid">
+          <div class="f full"><label>Points forts</label><textarea data-field="forts" data-id="${a.id}" placeholder="Ce qu'on a adoré...">${esc(a.forts)}</textarea></div>
+          <div class="f full"><label>Points faibles / red flags</label><textarea data-field="flags" data-id="${a.id}" placeholder="Bruit, humidité, vis-à-vis, travaux...">${esc(a.flags)}</textarea></div>
+          <div class="f full"><label>Autres remarques</label><textarea data-field="notes" data-id="${a.id}" placeholder="Tout ce qui te passe par la tête">${esc(a.notes)}</textarea></div>
+        </div>
+      </div>
+      <div class="card-foot">
+        ${a.lien?`<a class="btn link" href="${esc(a.lien)}" target="_blank" rel="noopener">🔗 Voir l'annonce</a>`:''}
+        <button class="btn" data-action="duplicate" data-id="${a.id}">Dupliquer</button>
+        <button class="btn ghost del" data-action="delete" data-id="${a.id}">Supprimer</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function infosHTML(a){
+  return `<div class="section">
+    <h3><span class="em">ℹ️</span> Infos</h3>
+    <div class="grid">
+      <div class="f full"><label>Nom / surnom de l'appart</label><input data-field="nom" data-id="${a.id}" value="${esc(a.nom)}" placeholder="Ex : Le 3 pièces lumineux"></div>
+      <div class="f"><label>Quartier</label><input data-field="quartier" data-id="${a.id}" value="${esc(a.quartier)}" placeholder="Quartier / ville"></div>
+      <div class="f"><label>Date de visite</label><input type="date" data-field="dateVisite" data-id="${a.id}" value="${esc(a.dateVisite)}"></div>
+      <div class="f full"><label>Adresse</label><input data-field="adresse" data-id="${a.id}" value="${esc(a.adresse)}" placeholder="Rue, ville"></div>
+      <div class="f full"><label>Lien de l'annonce</label><input type="url" data-field="lien" data-id="${a.id}" value="${esc(a.lien)}" placeholder="https://..."></div>
+      <div class="f"><label>Loyer CC (€/mois)</label><div class="with-unit"><input type="number" inputmode="decimal" data-field="loyer" data-id="${a.id}" value="${esc(a.loyer)}" placeholder="0"><span class="u">€</span></div></div>
+      <div class="f"><label>Dont charges (€)</label><div class="with-unit"><input type="number" inputmode="decimal" data-field="charges" data-id="${a.id}" value="${esc(a.charges)}" placeholder="0"><span class="u">€</span></div></div>
+      <div class="f"><label>Surface</label><div class="with-unit"><input type="number" inputmode="decimal" data-field="surface" data-id="${a.id}" value="${esc(a.surface)}" placeholder="0"><span class="u">m²</span></div></div>
+      <div class="f"><label>Nb de pièces</label><input type="number" inputmode="numeric" data-field="pieces" data-id="${a.id}" value="${esc(a.pieces)}" placeholder="0"></div>
+      <div class="f"><label>Chambres</label><input type="number" inputmode="numeric" data-field="chambres" data-id="${a.id}" value="${esc(a.chambres)}" placeholder="0"></div>
+      <div class="f"><label>Étage</label><input data-field="etage" data-id="${a.id}" value="${esc(a.etage)}" placeholder="Ex : 3e"></div>
+      <div class="f"><label>Dépôt de garantie (€)</label><div class="with-unit"><input type="number" inputmode="decimal" data-field="depot" data-id="${a.id}" value="${esc(a.depot)}" placeholder="0"><span class="u">€</span></div></div>
+      <div class="f"><label>Extérieur</label><select data-field="exterieur" data-id="${a.id}">${EXTERIEURS.map(o=>`<option ${a.exterieur===o?'selected':''}>${o}</option>`).join('')}</select></div>
+      <div class="f"><label>DPE</label><select data-field="dpe" data-id="${a.id}">${DPES.map(o=>`<option value="${o}" ${a.dpe===o?'selected':''}>${o||'—'}</option>`).join('')}</select></div>
+      <div class="f"><label>Disponible le</label><input data-field="dispo" data-id="${a.id}" value="${esc(a.dispo)}" placeholder="Ex : tout de suite"></div>
+      <div class="f check"><input type="checkbox" id="asc-${a.id}" data-field="ascenseur" data-id="${a.id}" ${a.ascenseur?'checked':''}><label for="asc-${a.id}">Ascenseur</label></div>
+      <div class="f check"><input type="checkbox" id="meu-${a.id}" data-field="meuble" data-id="${a.id}" ${a.meuble?'checked':''}><label for="meu-${a.id}">Meublé</label></div>
+    </div>
+  </div>`;
+}
+
+function starsHTML(id, critId, val, heart){
+  let s='';
+  for(let i=1;i<=5;i++) s+=`<button class="star ${i<=val?'on':''}" data-star data-id="${id}" data-crit="${critId}" data-val="${i}" aria-label="${i}">${heart?'♥':'★'}</button>`;
+  return `<div class="stars ${heart?'hearts':''}" data-rating="${critId}">${s}</div>`;
+}
+function groupHTML(a,g){
+  return `<div class="section">
+    <h3><span class="em">${g.em}</span> ${g.label}</h3>
+    ${g.criteria.map(c=>`<div class="rate">
+      <div class="lab">${c.label}${c.weight>=3?'<span class="imp">★ clé</span>':''}</div>
+      ${starsHTML(a.id, c.id, a.ratings[c.id]||0, false)}
+    </div>`).join('')}
+  </div>`;
+}
+function coupleHTML(a){
+  const dis=(a.coup.toi&&a.coup.elle&&Math.abs(a.coup.toi-a.coup.elle)>=2);
+  return `<div class="section">
+    <h3><span class="em">❤️</span> Coup de cœur</h3>
+    <div class="couple">
+      <div class="who"><span class="nm2">${esc(state.names.you)}</span>${starsHTML(a.id,'__toi',a.coup.toi||0,true)}</div>
+      <div class="who"><span class="nm2">${esc(state.names.her)}</span>${starsHTML(a.id,'__elle',a.coup.elle||0,true)}</div>
+      <div class="disagree" data-disagree style="${dis?'':'display:none'}">⚡ Vous n'êtes pas d'accord sur celui-là — à discuter</div>
+    </div>
+  </div>`;
+}
+
+function renderComparatif(){
+  if(state.apparts.length<1){
+    app.innerHTML=`<div class="empty"><div class="big">📊</div><h2>Rien à comparer</h2><p>Ajoute au moins un appart pour voir le classement.</p><button class="btn primary" data-action="add"><span class="ic">＋</span> Ajouter un appart</button></div>`;
+    return;
+  }
+  const ranked=state.apparts.map(a=>({a, s:scoreOf(a)}))
+    .sort((x,y)=>(y.s.score==null?-1:y.s.score)-(x.s.score==null?-1:x.s.score));
+  const medals=['🥇','🥈','🥉'];
+  app.innerHTML = ranked.map((row,i)=>{
+    const a=row.a, sc=row.s, lm2=loyerM2(a);
+    const dis=(a.coup.toi&&a.coup.elle&&Math.abs(a.coup.toi-a.coup.elle)>=2);
+    const medal=medals[i]||(i+1);
+    return `<div class="cmp-card">
+      <div class="cmp-thumb">${a.photo?`<img src="${esc(a.photo)}" alt=""><span class="rk">${medal}</span>`:`<span class="rk-big">${medal}</span>`}</div>
+      <div class="cmp-main">
+        <div class="cmp-top">
+          <span class="nm">${esc(a.nom)||'Sans nom'}</span>
+          <span class="sc" style="color:var(--${scoreClass(sc.score)})">${sc.score==null?'—':sc.score}<span style="font-size:12px;color:var(--muted)">/100</span></span>
+        </div>
+        <div class="cmp-meta">${esc(a.quartier)||'—'}${num(a.chambres)>0?' · '+esc(a.chambres)+' ch.':''}${a.exterieur&&a.exterieur!=='Aucun'?' · 🌿 '+esc(a.exterieur):''}${sc.pct<100?' · rempli à '+sc.pct+'%':''}</div>
+        <div class="cmp-nums">
+          <span>Loyer <b>${num(a.loyer)>0?Math.round(num(a.loyer))+' €':'—'}</b></span>
+          <span>Surface <b>${num(a.surface)>0?a.surface+' m²':'—'}</b></span>
+          <span>Au m² <b>${lm2?lm2+' €':'—'}</b></span>
+        </div>
+        <div class="bars">
+          ${GROUPS.map(g=>{const gs=groupScore(a,g); return `<div class="bar-row"><span class="bl">${g.em} ${g.label}</span><div class="bar"><i style="width:${gs||0}%"></i></div><span class="bv">${gs==null?'—':gs}</span></div>`;}).join('')}
+        </div>
+        ${dis?'<div class="cmp-flags"><span class="chip warn">⚡ Désaccord coup de cœur</span></div>':''}
+        ${a.flags.trim()?`<div class="cmp-flags"><span class="chip warn">⚠︎ ${esc(a.flags.split('\\n')[0].slice(0,60))}</span></div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- Targeted updates (no full re-render on typing) ---------- */
+function updateDerived(id){
+  const a=state.apparts.find(x=>x.id===id); if(!a) return;
+  const card=document.querySelector(`[data-card="${id}"]`); if(!card) return;
+  const sc=scoreOf(a), lm2=loyerM2(a);
+  const badge=card.querySelector('.score'); badge.className='score '+scoreClass(sc.score);
+  card.querySelector('[data-score]').textContent = sc.score==null?'—':sc.score;
+  card.querySelector('.head-price .p').textContent = num(a.loyer)>0?Math.round(num(a.loyer))+' €':'—';
+  card.querySelector('[data-lm2]').textContent = lm2?lm2+' €/m²':'CC / mois';
+  const dz=card.querySelector('[data-disagree]');
+  if(dz){ const dis=(a.coup.toi&&a.coup.elle&&Math.abs(a.coup.toi-a.coup.elle)>=2); dz.style.display=dis?'':'none'; }
+}
+
+/* ---------- Events ---------- */
+document.addEventListener('input', e=>{
+  const t=e.target; const id=t.dataset.id; const field=t.dataset.field;
+  if(!id||!field) return;
+  const a=state.apparts.find(x=>x.id===id); if(!a) return;
+  a[field] = t.type==='checkbox'? t.checked : t.value;
+  save(); updateDerived(id);
+});
+document.addEventListener('change', e=>{
+  const t=e.target;
+  if(t.dataset.field && (t.tagName==='SELECT'||t.type==='checkbox')){ /* handled by input too, ensure save */ save(); }
+});
+
+document.addEventListener('click', e=>{
+  const star=e.target.closest('[data-star]');
+  if(star){
+    const id=star.dataset.id, crit=star.dataset.crit, val=parseInt(star.dataset.val,10);
+    const a=state.apparts.find(x=>x.id===id); if(!a) return;
+    if(crit==='__toi'||crit==='__elle'){
+      const k=crit==='__toi'?'toi':'elle';
+      a.coup[k]= a.coup[k]===val?0:val;
+    }else{
+      a.ratings[crit]= a.ratings[crit]===val?0:val;
+    }
+    save();
+    // re-render just this rating control
+    const cont=star.parentElement;
+    const heart=cont.classList.contains('hearts');
+    const cur= (crit==='__toi'?a.coup.toi: crit==='__elle'?a.coup.elle : a.ratings[crit])||0;
+    cont.outerHTML=starsHTML(id,crit,cur,heart);
+    updateDerived(id);
+    return;
+  }
+  const actEl=e.target.closest('[data-action]');
+  if(!actEl) return;
+  const act=actEl.dataset.action, id=actEl.dataset.id;
+  if(act==='toggle'){ if(openIds.has(id))openIds.delete(id); else openIds.add(id); document.querySelector(`[data-card="${id}"]`).classList.toggle('collapsed'); return; }
+  if(act==='add'){ const a=newAppart(); state.apparts.unshift(a); openIds.add(a.id); save(); render(); window.scrollTo({top:0,behavior:'smooth'}); return; }
+  if(act==='demo'){ loadDemo(); return; }
+  if(act==='duplicate'){ const o=state.apparts.find(x=>x.id===id); if(o){const c=JSON.parse(JSON.stringify(o)); c.id=uid(); c.nom=(o.nom||'Appart')+' (copie)'; const i=state.apparts.indexOf(o); state.apparts.splice(i+1,0,c); openIds.add(c.id); save(); render();} return; }
+  if(act==='delete'){ const o=state.apparts.find(x=>x.id===id); if(o&&confirm('Supprimer « '+(o.nom||'cet appart')+' » ?')){ state.apparts=state.apparts.filter(x=>x.id!==id); save(); render(); } return; }
+  if(act==='print'){ state.view='comparatif'; save(); render(); setTimeout(()=>window.print(),120); return; }
+  if(act==='export'){ doExport(); return; }
+  if(act==='import'){ document.getElementById('fileInput').click(); return; }
+  if(act==='photo'){ photoTargetId=id; document.getElementById('photoInput').click(); return; }
+  if(act==='settings'){ openSettings(); return; }
+  if(act==='close-settings'){ document.getElementById('settingsModal').classList.remove('open'); return; }
+  if(act==='save-settings'){
+    state.names.you=document.getElementById('set-you').value.trim()||'Toi';
+    state.names.her=document.getElementById('set-her').value.trim()||'Elle';
+    save(); document.getElementById('settingsModal').classList.remove('open'); render(); return;
+  }
+});
+
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{ state.view=t.dataset.view; save(); render(); window.scrollTo({top:0}); }));
+
+function openSettings(){
+  document.getElementById('set-you').value=state.names.you;
+  document.getElementById('set-her').value=state.names.her;
+  document.getElementById('settingsModal').classList.add('open');
+}
+document.getElementById('settingsModal').addEventListener('click',e=>{ if(e.target.id==='settingsModal') e.currentTarget.classList.remove('open'); });
+
+function doExport(){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download='nos-apparts.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+document.getElementById('fileInput').addEventListener('change',e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=()=>{ try{
+    const data=JSON.parse(r.result);
+    const incoming=Array.isArray(data)?data:(data.apparts||[]);
+    if(!incoming.length){ alert('Aucun appart trouvé dans ce fichier.'); return; }
+    if(state.apparts.length && !confirm('Remplacer ta liste actuelle par celle du fichier ('+incoming.length+' appart·s) ?\\n\\nAnnule pour fusionner à la place.')){
+      // merge
+      const ids=new Set(state.apparts.map(a=>a.id));
+      incoming.forEach(a=>{ if(ids.has(a.id)) a.id=uid(); state.apparts.push(newAppart(a)); });
+    }else{
+      state.apparts=incoming.map(a=>newAppart(a));
+    }
+    if(data.names) state.names=data.names;
+    save(); render(); alert('Importé.');
+  }catch(err){ alert('Fichier illisible.'); } };
+  r.readAsText(file); e.target.value='';
+});
+
+function resizeImage(file, maxDim, q){
+  return new Promise((res,rej)=>{
+    const url=URL.createObjectURL(file); const img=new Image();
+    img.onload=()=>{ let w=img.naturalWidth, h=img.naturalHeight; const s=Math.min(1, maxDim/Math.max(w,h));
+      w=Math.round(w*s); h=Math.round(h*s); const c=document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h); URL.revokeObjectURL(url);
+      try{ res(c.toDataURL('image/jpeg', q)); }catch(err){ rej(err); } };
+    img.onerror=()=>{ URL.revokeObjectURL(url); rej(new Error('img')); }; img.src=url;
+  });
+}
+document.getElementById('photoInput').addEventListener('change',e=>{
+  const file=e.target.files[0]; const id=photoTargetId; e.target.value='';
+  if(!file||!id) return; const a=state.apparts.find(x=>x.id===id); if(!a) return;
+  resizeImage(file,1200,0.7).then(d=>{ a.photo=d; save(); render(); })
+    .catch(()=>alert("Impossible de charger cette image."));
+});
+
+function loadDemo(){
+  const d=newAppart({
+    nom:'Exemple — 3 pièces lumineux', quartier:'Centre-ville', adresse:'12 rue des Tilleuls',
+    loyer:'1150', charges:'90', depot:'1060', surface:'62', pieces:'3', etage:'3e',
+    ascenseur:true, meuble:false, dpe:'C', exterieur:'Balcon', dispo:'1er du mois',
+    ratings:{quartier:5,transports:4,commerces:4,trajet:3,etat:4,agencement:5,cuisine:3,sdb:3,rangements:2,dpe_iso:4,luminosite:5,calme:4,vis_a_vis:3,exterieur_q:4,qualite_prix:4,charges_ok:4},
+    coup:{toi:5,elle:4}, forts:'Très lumineux, beau balcon plein sud', flags:'Petite salle de bain', notes:'Voisins sympas, syndic sérieux'
+  });
+  state.apparts.unshift(d); openIds.add(d.id); save(); render();
+}
+
+render();
+</script>
+</body>
+</html>
