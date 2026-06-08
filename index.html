@@ -101,6 +101,7 @@ input,select,textarea{font-family:inherit; font-size:16px; color:var(--ink)}
 .card-photo .ph-empty{height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; color:#A49E92; font-size:13.5px; font-weight:600; cursor:pointer}
 .card-photo .ph-empty .ic{font-size:28px}
 .ph-btn{position:absolute; right:10px; bottom:10px; background:rgba(41,48,46,.58); color:#fff; border-radius:9px; padding:7px 11px; font-size:12.5px; font-weight:600; -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); display:inline-flex; gap:5px; align-items:center}
+.photo-date{position:absolute; left:10px; top:10px; z-index:2; background:rgba(62,124,106,.94); color:#fff; border-radius:9px; padding:6px 11px; font-size:13px; font-weight:700; -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); display:inline-flex; gap:6px; align-items:center; box-shadow:0 1px 4px rgba(41,48,46,.25)}
 
 .section{padding:14px 0; border-bottom:1px solid var(--line)}
 .section:last-child{border-bottom:none}
@@ -279,21 +280,41 @@ const EXTERIEURS=['Aucun','Balcon','Terrasse','Jardin','Loggia','Cour'];
 const DPES=['','A','B','C','D','E','F','G'];
 
 const SEED=[
-  {nom:"Nancy — 21 Ruelle Vitrimont", quartier:"Nancy (54000)", adresse:"21 Ruelle Vitrimont, Nancy", lien:"https://www.bouko-immobilier.com/location/74-nancy/appartement/t3/140-nancy-f3-rdc-avec-jardin/", dateVisite:"2026-06-09", photo:"photos/nancy-vitrimont.jpg", loyer:"930", charges:"30", depot:"900", surface:"81", pieces:"3", chambres:"2", etage:"RDC", exterieur:"Jardin", dpe:"", dispo:"21/05/2026", notes:"Visite lun. 09/06 à 17h00\nF3 en rez-de-chaussée, jardin privatif + terrasse, 2 chambres"},
-  {nom:"Heillecourt — 4 Rue de Longchamps", quartier:"Heillecourt (54180) · Nancy Sud", adresse:"4 Rue de Longchamps, Heillecourt", lien:"https://www.libertyhome.fr/location/31-heillecourt/maison/744-heillecourt-nancy-sud-maison-t4-avec-jardin-et-garage", dateVisite:"2026-06-12", photo:"photos/heillecourt-longchamps.jpg", loyer:"1065", charges:"25", depot:"1040", surface:"112.63", pieces:"4", chambres:"3", etage:"Maison", exterieur:"Jardin", dpe:"D", dispo:"31/08/2026", notes:"Visite ven. 12/06 à 17h00\nMaison T4, jardin clos + garage motorisé, 3 chambres"},
+  {nom:"Nancy — 21 Ruelle Vitrimont", quartier:"Nancy (54000)", adresse:"21 Ruelle Vitrimont, Nancy", lien:"https://www.bouko-immobilier.com/location/74-nancy/appartement/t3/140-nancy-f3-rdc-avec-jardin/", dateVisite:"2026-06-09", heureVisite:"17h00", photo:"photos/nancy-vitrimont.jpg", loyer:"930", charges:"30", depot:"900", surface:"81", pieces:"3", chambres:"2", etage:"RDC", exterieur:"Jardin", dpe:"C", dispo:"21/05/2026", notes:"Visite le 09/06 à 17h00\nF3 en rez-de-chaussée, jardin privatif + terrasse, 2 chambres"},
+  {nom:"Heillecourt — 4 Rue de Longchamps", quartier:"Heillecourt (54180) · Nancy Sud", adresse:"4 Rue de Longchamps, Heillecourt", lien:"https://www.libertyhome.fr/location/31-heillecourt/maison/744-heillecourt-nancy-sud-maison-t4-avec-jardin-et-garage", dateVisite:"2026-06-12", heureVisite:"17h00", photo:"photos/heillecourt-longchamps.jpg", loyer:"1065", charges:"25", depot:"1040", surface:"112.63", pieces:"4", chambres:"3", etage:"Maison", exterieur:"Jardin", dpe:"D", dispo:"31/08/2026", notes:"Visite le 12/06 à 17h00\nMaison T4, jardin clos + garage motorisé, 3 chambres"},
   {nom:"Tomblaine 1 — maison T4", quartier:"Tomblaine (54510)", adresse:"Tomblaine (54510)", lien:"https://www.lamy-immobilier.fr/louer/louer-un-bien/annonces-de-biens-a-louer/grand-est/meurthe-et-moselle-54/tomblaine-54510/maison-villa-tomblaine-54510-fl0879654", dateVisite:"", photo:"photos/tomblaine-1.jpg", loyer:"890", charges:"0", depot:"890", surface:"81", pieces:"4", chambres:"3", etage:"Maison", exterieur:"Jardin", dpe:"C", dispo:"16/06/2026", notes:"Maison T4 en lotissement, terrasse + jardin + garage attenant, 3 chambres\nCharges affichées à 0 € (à confirmer en visite)"},
   {nom:"Tomblaine 2 — maison T4", quartier:"Tomblaine (54510) · rue Camille Desmoulin", adresse:"Rue Camille Desmoulin, Tomblaine (54510)", lien:"https://www.lamy-immobilier.fr/louer/louer-un-bien/annonces-de-biens-a-louer/grand-est/meurthe-et-moselle-54/tomblaine-54510/maison-villa-tomblaine-54510-fl0882350", dateVisite:"", photo:"photos/tomblaine-2.jpg", loyer:"873", charges:"50", depot:"823", surface:"96", pieces:"4", chambres:"3", etage:"Maison", exterieur:"Jardin", dpe:"C", dispo:"03/07/2026", notes:"Maison T4, séjour/cuisine 38 m² lumineux ouvert sur jardin, terrasse + jardinet + garage, 3 chambres"},
   {nom:"Nancy — Raymond Poincaré / Gare", quartier:"Raymond Poincaré / Gare · Nancy (54000)", adresse:"Quartier Raymond Poincaré, Nancy", lien:"https://tripleximmobilier.fr/property/quartier-raymond-poincare-gare-superbe-3-pieces-terrasse-en-derner-etage-avec-parking/", dateVisite:"", photo:"photos/raymond-poincare.jpg", loyer:"960", charges:"110", depot:"850", surface:"73", pieces:"3", chambres:"2", etage:"4e (dernier)", exterieur:"Terrasse", dpe:"D", dispo:"01/08/2026", notes:"Dernier étage (4e), terrasse 20 m² + garage/parking, 2 chambres\nLoyer 850 € HC + 110 € de charges"},
 ];
+const SEED_VERSION=2;
 
 let state=load();
 
+function isPristine(apparts){
+  return apparts.every(a=>{
+    const noRatings = !a.ratings || Object.keys(a.ratings).length===0;
+    const noCoup = !a.coup || (!a.coup.toi && !a.coup.elle);
+    const noUserPhoto = !(a.photo && a.photo.indexOf('data:')===0);
+    const noText = !((a.forts&&a.forts.trim())||(a.flags&&a.flags.trim()));
+    return noRatings && noCoup && noUserPhoto && noText;
+  });
+}
 function load(){
   try{
     const raw=localStorage.getItem(KEY);
-    if(raw){const s=JSON.parse(raw); s.apparts=s.apparts||[]; s.names=s.names||{you:'Toi',her:'Elle'}; s.view=s.view||'fiches'; return s;}
+    if(raw){
+      const s=JSON.parse(raw);
+      s.apparts=(s.apparts||[]).map(a=>newAppart(a));
+      s.names=s.names||{you:'Toi',her:'Elle'}; s.view=s.view||'fiches';
+      // Tant qu'aucune note n'a été saisie, on réapplique les annonces de départ corrigées
+      if(s.seedVersion!==SEED_VERSION && isPristine(s.apparts)){
+        s.apparts=SEED.map(x=>newAppart(x)); s.seedVersion=SEED_VERSION;
+        try{ localStorage.setItem(KEY, JSON.stringify(s)); }catch(e){}
+      }
+      return s;
+    }
   }catch(e){}
-  return {apparts:SEED.map(s=>newAppart(s)), names:{you:'Toi',her:'Elle'}, view:'fiches'};
+  return {apparts:SEED.map(s=>newAppart(s)), names:{you:'Toi',her:'Elle'}, view:'fiches', seedVersion:SEED_VERSION};
 }
 function save(){ try{localStorage.setItem(KEY, JSON.stringify(state));}catch(e){} }
 
@@ -302,10 +323,17 @@ let photoTargetId=null;
 function uid(){ return 'a'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36); }
 function num(v){ const n=parseFloat(String(v).replace(',','.')); return isNaN(n)?0:n; }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function fmtDate(d){
+  if(!d) return '';
+  const p=String(d).split('-'); if(p.length!==3) return esc(d);
+  const dt=new Date(+p[0], +p[1]-1, +p[2]); if(isNaN(dt.getTime())) return esc(d);
+  let s=dt.toLocaleDateString('fr-FR',{weekday:'short', day:'numeric', month:'short'});
+  return s.charAt(0).toUpperCase()+s.slice(1);
+}
 
 function newAppart(seed){
   return Object.assign({
-    id:uid(), nom:'', quartier:'', adresse:'', lien:'', dateVisite:'', photo:'',
+    id:uid(), nom:'', quartier:'', adresse:'', lien:'', dateVisite:'', heureVisite:'', photo:'',
     loyer:'', charges:'', depot:'', surface:'', pieces:'', chambres:'', etage:'',
     ascenseur:false, meuble:false, dpe:'', exterieur:'Aucun', dispo:'',
     ratings:{}, coup:{toi:0,elle:0}, forts:'', flags:'', notes:''
@@ -354,8 +382,9 @@ function renderFiches(){
 }
 
 function photoHTML(a){
-  if(a.photo) return `<div class="card-photo"><img src="${esc(a.photo)}" alt="" data-action="toggle" data-id="${a.id}"><button class="ph-btn" data-action="photo" data-id="${a.id}">📷 Changer</button></div>`;
-  return `<div class="card-photo"><div class="ph-empty" data-action="photo" data-id="${a.id}"><span class="ic">📷</span>Ajouter une photo</div></div>`;
+  const db = a.dateVisite ? `<div class="photo-date">📅 ${fmtDate(a.dateVisite)}${a.heureVisite?' · '+esc(a.heureVisite):''}</div>` : '';
+  if(a.photo) return `<div class="card-photo">${db}<img src="${esc(a.photo)}" alt="" data-action="toggle" data-id="${a.id}"><button class="ph-btn" data-action="photo" data-id="${a.id}">📷 Changer</button></div>`;
+  return `<div class="card-photo">${db}<div class="ph-empty" data-action="photo" data-id="${a.id}"><span class="ic">📷</span>Ajouter une photo</div></div>`;
 }
 function cardHTML(a){
   const sc=scoreOf(a); const lm2=loyerM2(a);
@@ -414,6 +443,7 @@ function infosHTML(a){
       <div class="f full"><label>Nom / surnom de l'appart</label><input data-field="nom" data-id="${a.id}" value="${esc(a.nom)}" placeholder="Ex : Le 3 pièces lumineux"></div>
       <div class="f"><label>Quartier</label><input data-field="quartier" data-id="${a.id}" value="${esc(a.quartier)}" placeholder="Quartier / ville"></div>
       <div class="f"><label>Date de visite</label><input type="date" data-field="dateVisite" data-id="${a.id}" value="${esc(a.dateVisite)}"></div>
+      <div class="f"><label>Heure de visite</label><input data-field="heureVisite" data-id="${a.id}" value="${esc(a.heureVisite)}" placeholder="Ex : 17h00"></div>
       <div class="f full"><label>Adresse</label><input data-field="adresse" data-id="${a.id}" value="${esc(a.adresse)}" placeholder="Rue, ville"></div>
       <div class="f full"><label>Lien de l'annonce</label><input type="url" data-field="lien" data-id="${a.id}" value="${esc(a.lien)}" placeholder="https://..."></div>
       <div class="f"><label>Loyer CC (€/mois)</label><div class="with-unit"><input type="number" inputmode="decimal" data-field="loyer" data-id="${a.id}" value="${esc(a.loyer)}" placeholder="0"><span class="u">€</span></div></div>
@@ -477,7 +507,7 @@ function renderComparatif(){
           <span class="nm">${esc(a.nom)||'Sans nom'}</span>
           <span class="sc" style="color:var(--${scoreClass(sc.score)})">${sc.score==null?'—':sc.score}<span style="font-size:12px;color:var(--muted)">/100</span></span>
         </div>
-        <div class="cmp-meta">${esc(a.quartier)||'—'}${num(a.chambres)>0?' · '+esc(a.chambres)+' ch.':''}${a.exterieur&&a.exterieur!=='Aucun'?' · 🌿 '+esc(a.exterieur):''}${sc.pct<100?' · rempli à '+sc.pct+'%':''}</div>
+        <div class="cmp-meta">${a.dateVisite?'📅 '+fmtDate(a.dateVisite)+' · ':''}${esc(a.quartier)||'—'}${num(a.chambres)>0?' · '+esc(a.chambres)+' ch.':''}${a.exterieur&&a.exterieur!=='Aucun'?' · 🌿 '+esc(a.exterieur):''}${sc.pct<100?' · rempli à '+sc.pct+'%':''}</div>
         <div class="cmp-nums">
           <span>Loyer <b>${num(a.loyer)>0?Math.round(num(a.loyer))+' €':'—'}</b></span>
           <span>Surface <b>${num(a.surface)>0?a.surface+' m²':'—'}</b></span>
@@ -512,7 +542,9 @@ document.addEventListener('input', e=>{
   if(!id||!field) return;
   const a=state.apparts.find(x=>x.id===id); if(!a) return;
   a[field] = t.type==='checkbox'? t.checked : t.value;
-  save(); updateDerived(id);
+  save();
+  if(field==='dateVisite'||field==='heureVisite'){ const card=document.querySelector(`[data-card="${id}"]`); const ph=card&&card.querySelector('.card-photo'); if(ph) ph.outerHTML=photoHTML(a); }
+  updateDerived(id);
 });
 document.addEventListener('change', e=>{
   const t=e.target;
